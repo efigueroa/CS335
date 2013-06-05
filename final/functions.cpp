@@ -132,14 +132,7 @@ void keyHandler()
         hero->addPos(movTick*2);
       }
     }
-    
-    /*if(glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS) 
-    {
-      shoot(); 
-      beamFlag=1;
-      cout << "BEAM!\n";  
-    } */   
-
+   
     if(glfwGetKey('D') == GLFW_PRESS) //right movement
     {
       //printf("%f\n",moveX);
@@ -253,8 +246,6 @@ void render()
   updateEnemy();
   if(beamFlag==1)
   {
-      cout << "BEAM " << beamFlag << endl;
-    cout << "BEAM!\n";
     drawBeam();
     usleep(3000);
     beamFlag=0;
@@ -275,8 +266,7 @@ void GLFWCALL keyCallBack(int key, int action)
     if(key == GLFW_KEY_SPACE && action == GLFW_PRESS) 
     {
       shoot(); 
-      beamFlag=1;
-      cout << "BEAM!\n";  
+      beamFlag=1;  
     } 
         
   }
