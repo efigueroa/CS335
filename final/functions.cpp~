@@ -19,6 +19,7 @@ extern GLuint backTexture;
 const int MAXENEMY = 5;
 extern double oldTime;
 float LEVEL = .05;
+bool beamFlag = 0;
 
 Enemy* baddy = new Enemy[MAXENEMY];
 Player* hero = new Player();
@@ -59,48 +60,61 @@ void moveEn()
  
 }
 
-void shoot()
-{/*
-  float margin = 0.02;
-  float diff = 0.0;
-  for(int i=0;i<MAXENEMY;i++) 
+void drawBeam()
+{
+ 
+  glPushMatrix();
+  glTranslatef(hero->getPos(),-3.5,0); 
+  
+  float f=9;
+  glBegin(GL_QUADS);
   {
-    if(hero->getPos() < 0 && baddy[i].getPos() < 0)
-    {
-      if(abs(abs(hero->getPos())-abs(baddy[i].getPos())) < margin)
-      {
-        baddy[i].resetY();
-        hero->kill();
-      }
-    else if(hero->getPos() > 0 && baddy[i].getPos() > 0)
-    {
-      if((abs(hero->getPos()-baddy[i].getPos())) < margin)
-      {
-        baddy[i].resetY();
-        hero->kill();
-      }
-     }      
-    }
+    
+    glColor3f(1, 1,1);    //white
+    //glColor3f(1, 0, 0);
+    glVertex3f(0, 9, -f); //red
+    //glColor3f(0, 1, 0);
+    glVertex3f(0, 5, -f);  //green
+    //glColor3f(0, 0, 1);   //blue
+    glVertex3f(.05, -.8, -f);
+    //glColor3f(1, 1,1);    //white
+    glVertex3f(-.05, -.8, -f);
   }
-  */
-}
-      
-      
-    
-    diff = ;
-    if((hero->getPos()-baddy[i].getPos()) > margin)
-    {
-      cout << hero->getPos() << endl;
-      cout << baddy[i].getPos() << endl;
-      cout << diff << endl<<endl;
-      baddy[i].resetY();
-      hero->kill();
-    }
-    
-  }
-    
+  glEnd();
+  glPopMatrix();
+  
 }
 
+void shoot()
+{
+  float min = 0.0,      //low 
+        max = 0.0,      //high
+        normal = 15.0,  //normalize
+        margin = .7;    //margin of error
+
+  for(int i=0;i<MAXENEMY;i++) 
+  {
+    //reset low/
+    min = max = 0; 
+    //to avoid negative positions, normalize and add 15.0 which is
+    //bigger than the screen size. Then sub/add the margin of error
+    min = (normal + baddy[i].getxPos()) - margin;
+    max = (normal + baddy[i].getxPos()) + margin;
+
+    if(min <= (normal + hero->getPos()) <= max)
+    {
+      //baddy[i].resetY();
+      //hero->kill();
+    }
+    /*
+    cout << min << endl;
+    cout << (15.0 + hero->getPos()) << endl;
+    cout << max << endl << endl;
+    */
+  }
+
+}
+ 
 void keyHandler()
 {
       if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
@@ -119,10 +133,12 @@ void keyHandler()
       }
     }
     
-    if(glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS) 
+    /*if(glfwGetKey(GLFW_KEY_SPACE) == GLFW_PRESS) 
     {
-      //shoot();    
-    }    
+      shoot(); 
+      beamFlag=1;
+      cout << "BEAM!\n";  
+    } */   
 
     if(glfwGetKey('D') == GLFW_PRESS) //right movement
     {
@@ -137,6 +153,7 @@ void keyHandler()
     }
     if(glfwGetKey('Q') == GLFW_PRESS)  //reserved as debug keys
     {
+
     }
     if(glfwGetKey('E') == GLFW_PRESS)  //reserved as debug keys    
     {
@@ -231,9 +248,18 @@ void render()
   glPopMatrix();
 */
 
-  drawPlayer();
+  
   drawWall();
   updateEnemy();
+  if(beamFlag==1)
+  {
+      cout << "BEAM " << beamFlag << endl;
+    cout << "BEAM!\n";
+    drawBeam();
+    usleep(3000);
+    beamFlag=0;
+  }
+  drawPlayer();
   glfwSwapBuffers();
   glfwPollEvents();
 }
@@ -246,37 +272,13 @@ void GLFWCALL keyCallBack(int key, int action)
 
   //Player movement, left and right only
   {
-    if(key == 'A' && action == GLFW_PRESS) //to the left, to the left! 
+    if(key == GLFW_KEY_SPACE && action == GLFW_PRESS) 
     {
-      //printf("%f\n",moveX);
-      if(moveX >= 4) 
-      { //dont move it further 
-      }
-      else
-      {
-        moveX += .5;
-      }
-    }
-
-    if(key == 'D' && action == GLFW_PRESS) //right movement
-    {
-      //printf("%f\n",moveX);
-      if(moveX <= -4) 
-      {  
-      }
-      else
-      {
-        moveX -= .5;
-      }
-    }
-    if(key == 'Q' && action == GLFW_PRESS)  //reserved as debug keys
-    {
-    }
-    if(key == 'E' && action == GLFW_PRESS)  //reserved as debug keys    
-    {
-	  
-    }
-      
+      shoot(); 
+      beamFlag=1;
+      cout << "BEAM!\n";  
+    } 
+        
   }
 }
 
@@ -294,7 +296,7 @@ void init(int window_height, int window_width)
 
 
   glfwSetWindowTitle("FlatLander: Prevent the Uprising");
-  //glfwSetKeyCallback(keyCallBack);
+  glfwSetKeyCallback(keyCallBack);
 
   // set the projection matrix to a normal frustum with a max depth of 50
   glMatrixMode(GL_PROJECTION);

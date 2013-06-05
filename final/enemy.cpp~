@@ -41,11 +41,10 @@ class Enemy {
       
     }
     
-    float getPos()
-    {
-    return xPos();
-    } 
-
+  float getPos()
+  {
+    return xPos;
+  }
     bool isAlive() 
     {
       return alive;
