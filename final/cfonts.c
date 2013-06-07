@@ -6,8 +6,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <stdarg.h>
-
-#include "glfw.h"
+#include <GL/glfw.h>
 
 #define RGB(r,g,b)     ( (int)r + (int)((int)g<<8) + (int)((int)b<<16) )
 #define GetRValue(rgb) (unsigned char)( (unsigned int)rgb&0x000000ff )

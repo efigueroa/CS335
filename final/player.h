@@ -2,33 +2,46 @@ class Player
 {
   private:          
   int score;
-  float pos;
+  double pos;
+  double margin;
+  public:
+  double left;
+  double right;
     
   public:      
-  Player()
+  Player(int m)
   {
    score=0;
    pos=0.0;
+   margin = m;
+   left = pos - margin;
+   right = pos + margin;
   }
       
   int kill()
   {
     score += 1;
   }
-  void addPos(float p)
+  void addPos(double p)
   {
     pos+=p;
+    left=pos-margin;
+    right=pos+margin;
   }
-   void minPos(float p)
+   void minPos(double p)
   {
     pos-=p;
+        left=pos-margin;
+    right=pos+margin;
   }
-  void setPos(float c) 
+  void setPos(double c) 
   {
     pos=c;
+    left=pos-margin;
+    right=pos+margin;
   }
 
-  float getPos()
+  double getPos()
   {
     return pos;
   }

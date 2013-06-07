@@ -11,7 +11,7 @@
 #include <cstdlib>
 #include "functions.h"
 #include "enemy.cpp"
-#include "player.h"
+#include "player.cpp"
 
 
 
@@ -30,6 +30,7 @@ int main()
  
   init(window_height, window_width);
   init_opengl();
+ 
   init_buttons();
   
   while(1)

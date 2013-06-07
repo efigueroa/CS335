@@ -1,7 +1,7 @@
 void init(int, int);
 void shutDown(int return_code);
 void drawPlayer();
-void drawEnemy();
+void drawEn(int);
 void drawWall();
 void keyCallBack(int, int);
 void draw(int, float, float, float, float);
@@ -10,4 +10,8 @@ void keyHandler();
 void drawBackground();
 void init_opengl();
 void init_buttons();
-
+void moveEn();
+void drawBeam();
+void drawHit(double,double);
+void shoot();
+void updateEnemy();

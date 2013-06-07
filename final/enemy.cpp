@@ -13,15 +13,20 @@ class Enemy {
       alive = true;
       
       //rand x coord
-      usleep(rand()%10000+800); //good enough sleep period (microseconds)
+      usleep(rand()%10000+800); 
       double x=(rand()%8000-4000)/1000.0; //rand double 
       xPos = x;
       
       //rand y coord
       usleep(rand()%10000+800);
       double y=(rand()%60000)/1000.0;
-      yPos = y; //9.7 is just above top of screen
-      //as of now less than -4.5 means it touched the wall, GAME OVER
+      yPos = y; 
+      while (yPos < 9)
+      {
+        usleep(rand()%10000+800);
+        yPos =(rand()%60000)/1000.0;
+      }
+        
     }
 
     void setX(double x) 
@@ -34,9 +39,11 @@ class Enemy {
       yPos=y;
     }
 
-    void resetY()
+    void reset()
     {
+      while(yPos<10.0)
       yPos=(rand()%60000)/1000.0;
+      xPos=(rand()%8000-4000)/1000.0;
       
     }
     

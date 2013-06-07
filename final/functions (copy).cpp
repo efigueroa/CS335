@@ -22,13 +22,14 @@ using namespace std;
 extern double moveX;                   //player movement
 extern double movTick;
 extern GLuint backTexture;
-int MAXENEMY = 10;
+const int MAXENEMY = 1;
 extern double oldTime;
 double LEVEL = .05;
 bool beamFlag = 0;
 int border[2]={200,100};
+double hOffset=.6;
+double MARGIN=.5;
 bool HITBOX = 0;
-double MARG = 0.5;
 
 int xres=800;
 int yres=600;
@@ -44,6 +45,9 @@ GLuint hboxTexture;
 GLuint heroTexture;
 GLuint backTexture;
 GLuint beamTexture;
+//extern GLuint loadBMP(const char *imagepath);
+//extern GLuint tex_readgl_bmp(char *fileName, int alpha_channel);
+
 //
 #define MAXBUTTONS 4
 typedef struct t_button {
@@ -59,17 +63,6 @@ typedef struct t_button {
 Button button[MAXBUTTONS];
 int nbuttons=0;
 
-void levelUpdate()
-{
-  if(hero->score%15==0)
-  {
-    LEVEL += .05;
-    cout << LEVEL << endl;
-    cout << hero->score<<endl;
-    if(LEVEL > .1999999)
-      movTick = .3;
-  }
-}
 
 void drawEn(int enmy = 0)
 { 
@@ -82,7 +75,7 @@ void drawEn(int enmy = 0)
 	glAlphaFunc(GL_GREATER, 0.0f);
   glBindTexture(GL_TEXTURE_2D, badTexture);
 
-  double e=.75,f=9,d= 15;
+  double e=1,f=9,d= 15;
 
   glBegin (GL_QUADS);
   {
@@ -106,7 +99,7 @@ void moveEn()
     baddy[i].yPos  += -LEVEL;
     //cout << -LEVEL << endl;
 
-    if(baddy[i].yPos <= -2) 
+    if(baddy[i].yPos <= -2.9) 
     {
       baddy[i].reset();
     }
@@ -118,23 +111,20 @@ void drawBeam()
 {
  
   glPushMatrix();
-  //draw beam over hero
   glTranslatef(hero->getPos(),-4,0);
-  
   glEnable(GL_ALPHA_TEST);
   glAlphaFunc(GL_GREATER, 0.0f);
   glBindTexture(GL_TEXTURE_2D,beamTexture);
   
-  double f=9,h=10,w=.25;
+  double f=10,h=8.5,w=hero->right,wl=hero->left;
   
-  //drawn incorrectly from image, but I actually 
-  //like the way it looks better, so i'm keeping it
   glBegin(GL_QUADS);
   {
-    glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-w, h, -f);
-    glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(w, h, -f);
-    glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(w, 0, -f);
-    glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-w, 0, -f);
+    glColor3f(1, 1,1);
+    glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(.3, h, -f);
+    glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(-.3, h, -f);
+    glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(-.3, -1, -f);
+    glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(.3, -1, -f);
   }
   glEnd();
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -143,19 +133,43 @@ void drawBeam()
   
 }
 
+void drawHit(int i=0)
+{
+ 
+  glPushMatrix();
+  glTranslatef(baddy[i].getxPos(),baddy[i].getyPos(),0); 
+  
+    double e=1,f=15,d= 25;
+
+  glBegin (GL_QUADS);
+  {
+    glVertex3f(-e, e, -f);
+    glVertex3f(e, e, -f);
+    glVertex3f(e, -e, -f);
+    glVertex3f(-e, -e, -f);
+  }
+  glEnd();
+  glPopMatrix();
+  
+}
+
 void shoot(int i)
 {
-  double left = hero->getPos() - MARG;
-  double right = hero->getPos()+ MARG;
-  double height = baddy[i].getyPos();
-  
-  if(left < baddy[i].xPos && baddy[i].xPos < right && height < 5.4)
-  {
-    baddy[i].reset();
-    hero->kill();
-    levelUpdate();
-    return;
-  }
+   //baddy[i].reset();
+    //if(baddy[i].getyPos() < 7) 
+    {
+      if(hero->left > baddy[i].getxPos())
+      {
+        if(baddy[i].getxPos() > hero->right)
+        {
+          cout << "Hit:\n";
+          cout<<"left: "<<hero->left<<" baddy: "<<baddy[i].getxPos()<<" right: "<< hero->right<< endl;
+          cout << baddy[i].getyPos() << endl;
+          baddy[i].reset();
+        }
+      }
+    }
+
 }
  
 void keyHandler()
@@ -190,15 +204,23 @@ void keyHandler()
 	  
 	  if(glfwGetKey('N') == GLFW_PRESS) //right movement
     {
-      //if(baddy[0].xPos >= -4) 
+      //printf("%f\n",moveX);
+      //if(hero->getPos() < 0) 
+      {  
+      }
+      //else
       {
-        baddy[0].xPos+=(movTick*2);
+        baddy[0].xPos+=(movTick);
       }
 	  }
 	  
 	  if(glfwGetKey('M') == GLFW_PRESS) //right movement
     {
-      //if(baddy[0].xPos <= 4) 
+      //printf("%f\n",moveX);
+     // if(hero->getPos() >= -6) 
+      {  
+      }
+     // else
       {
         baddy[0].xPos-=(movTick);
       }
@@ -206,14 +228,22 @@ void keyHandler()
 	    
 }
   
-//update position and then draw it
+
+
 void updateEnemy() 
 {
+
   moveEn();
-  
+  //drawEn();
   for(int i = 0;i<MAXENEMY;i++) 
   {
+    //drawHit(i);
     drawEn(i);    
+  }
+  //check if it hit the wall
+  for(int i = 0;i<MAXENEMY;i++) 
+  {
+       
   }
 }
 
@@ -226,16 +256,13 @@ void shutDown(int return_code)
 
 void drawPlayer() {
   
-  //spinning it just for fun
   double rot = hero->getPos() * -90;
 
   glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
   glPushMatrix();
-  //move image down to where player actually is
   glTranslatef(hero->getPos(),-4.5,0); 
   glEnable(GL_ALPHA_TEST);
 	glAlphaFunc(GL_GREATER, 0.0f);
-	//rotate on z axis
   glRotatef(rot, 0, 0, 1);
   glBindTexture(GL_TEXTURE_2D, heroTexture);	
   
@@ -251,6 +278,25 @@ void drawPlayer() {
   glEnd();
   glBindTexture(GL_TEXTURE_2D, 0);
   glDisable(GL_ALPHA_TEST);
+  glPopMatrix();
+
+}
+
+
+void drawWall() {
+
+  glPushMatrix();
+  glTranslatef(0,-3,0);
+  double h=5,w=.3,d=10;
+  glBegin(GL_QUADS); 
+  {
+    glColor3f(0.15, 0.84,0 ); 
+    glVertex3f(-h, w, -d);
+    glVertex3f(h, w, -d);
+    glVertex3f(h, -w, -d);
+    glVertex3f(-h,-w, -d);
+  }
+  glEnd();
   glPopMatrix();
 
 }
@@ -289,8 +335,6 @@ void screenInfo()
 
 }
 
-
-
 void render()
 {
   // clear the buffer
@@ -306,7 +350,7 @@ void render()
   
   drawBackground();
  
-  drawPlayer();
+  //drawWall();
   updateEnemy();
   if(beamFlag==1)
   {
@@ -314,8 +358,9 @@ void render()
     usleep(5000);
     beamFlag=0;
   }
-  
   drawPlayer();
+  cout << "Hero is at x: "<< hero->getPos() << endl;
+  cout << "Enemy is at x: "<< baddy[0].getxPos() << endl<<endl;
 
   float totrain = 12.3455;
 
@@ -325,6 +370,8 @@ void render()
 	r.center = 0;
  // ggprint12(&r, 16, 0x00aaaa00, "total drops: %f",totrain);
 
+
+  //cout << hero->xPos << endl;
   glfwSwapBuffers();
   
 }
@@ -347,14 +394,18 @@ void GLFWCALL keyCallBack(int key, int action)
   }
   if(key == 'P' && action == GLFW_PRESS)
   {
-    LEVEL += .05;printf("uppered level %f \n",LEVEL);
+    LEVEL += .005;printf("uppered level\n");
   }
   if(key == 'O' && action == GLFW_PRESS)
   {
-    LEVEL -= .05; printf("lowered level %f \n",LEVEL);
+    LEVEL -= .005; printf("lowered level\n");
   }
   if(key == 'U' && action == GLFW_PRESS)
   {
+    if(HITBOX)
+      HITBOX=0;
+    else
+      HITBOX=1;
   }
   
 }
