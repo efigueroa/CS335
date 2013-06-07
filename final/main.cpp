@@ -13,11 +13,11 @@
 #include "enemy.cpp"
 #include "player.h"
 
-GLuint loadBMP(const char *imagepath);
 
-float moveX = 0;
 
-float movTick = .1;
+
+double moveX = 0;
+double movTick = .1;
 const int window_width = 512,
           window_height = 600;
 const int MAXENEMY = 5;
@@ -25,20 +25,17 @@ double oldTime;
 
 int main()
 {
-
   srand(time(NULL));
-
   oldTime = glfwGetTime();
-  
+ 
   init(window_height, window_width);
+  init_opengl();
+  init_buttons();
   
   while(1)
   {
     keyHandler();
-    glfwPollEvents();
     render();
-    glfwSwapBuffers();
   }
-
 }
 

@@ -36,6 +36,7 @@ class Enemy {
 
     void resetY()
     {
+      usleep(rand()%10000+800);
       yPos=(rand()%60000)/1000.0;
       
     }

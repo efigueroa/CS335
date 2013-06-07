@@ -9,5 +9,3 @@ void render();
 void keyHandler();
 void drawBackground();
 void init_opengl();
-void init_buttons();
-

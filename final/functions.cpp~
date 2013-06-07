@@ -203,6 +203,7 @@ void updateEnemy()
 
   moveEn();
   drawEn();
+  baddy[0].setY(1);
   for(int i = 0;i<MAXENEMY;i++) 
   {
     drawEn(i);    
