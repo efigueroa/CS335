@@ -2,15 +2,16 @@ class Enemy {
 
   public:
     int health;
-    bool alive;
+    int state;
     double xPos;
     double yPos;
+    double deathPos;
 
   public:
     Enemy()
     {
       health = 1;
-      alive = true;
+      state = 0;
       
       //rand x coord
       usleep(rand()%10000+800); 
@@ -56,10 +57,7 @@ class Enemy {
   {
     return yPos;
   }
-    bool isAlive() 
-    {
-      return alive;
-    }
+
 
     int hearts() 
     {

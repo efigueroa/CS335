@@ -15,6 +15,7 @@
 #include <string.h>
 #include "fonts.h"
 #include "bmp.c"
+#include "render.cpp"
 
 
 using namespace std;

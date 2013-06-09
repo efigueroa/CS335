@@ -4,6 +4,7 @@ class Player
   int score;
   double pos;
   double margin;
+  int life;
   public:
   double left;
   double right;
@@ -11,6 +12,7 @@ class Player
   public:      
   Player(int m)
   {
+   life=10;
    score=0;
    pos=0.0;
    margin = m;
@@ -21,6 +23,10 @@ class Player
   int kill()
   {
     score += 1;
+  }
+  int getScore()
+  {
+    return score;
   }
   void addPos(double p)
   {

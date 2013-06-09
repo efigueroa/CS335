@@ -15,3 +15,7 @@ void drawBeam();
 void drawHit(double,double);
 void shoot();
 void updateEnemy();
+void drawBackground();
+void drawBeginning();
+void drawGameOver();
+void drawDeath();

@@ -2,6 +2,7 @@ class Player
 {
   public:          
   int score;
+  int life;
   double pos;
   double left;
   double right;
@@ -10,6 +11,7 @@ class Player
   public:     
   Player()
   {
+   life=10;
    score=0;
    pos=0.0;
    marg = 2.0;
@@ -19,8 +21,14 @@ class Player
       
   int kill()
   {
-    score += 1;
+    score += 10;
   }
+  
+  int getScore()
+  {
+    return score;
+  }
+  
   void addPos(double p)
   {
     pos+=p;
@@ -28,7 +36,8 @@ class Player
     left = pos+marg;
     right =pos+marg;
   }
-   void minPos(double p)
+  
+  void minPos(double p)
   {
     pos -= p;
     usleep(1000);

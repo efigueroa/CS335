@@ -1,103 +1,83 @@
-/* Various Functions called from main
- */
-
 #include <GL/glfw.h>
 #include <cstdlib>
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
+#include <time.h>
+#include <string.h>
+#include "math.h"
+
+//mine
 #include "enemy.cpp"
 #include "functions.h"
 #include "player.cpp"
-#include "math.h"
+
+//gordons
 #include "defs.h"
-#include <time.h>
-#include <string.h>
 #include "fonts.h"
 #include "bmp.c"
 
 
 using namespace std;
 
-extern double moveX;                   //player movement
-extern double movTick;
-extern GLuint backTexture;
-int MAXENEMY = 10;
-extern double oldTime;
-double LEVEL = .05;
-bool beamFlag = 0;
-int border[2]={200,100};
-bool HITBOX = 0;
-double MARG = 0.5;
+extern double moveX;      //player movement
+extern double movTick;    //object movement speed adjustment
+
+int MAXENEMY = 10;    //max number of enemies
+
+double LEVEL = .05;   //set speed of enemies
+bool beamFlag = 0;    //for drawing beam
+double MARG = 0.5;    //margin from center for hit detection
+int MENU=0;           //for portion of screen selection
+int sflag=1;
 
 int xres=800;
-int yres=600;
+int yres=512;
 
+//create objects
 Enemy* baddy = new Enemy[MAXENEMY];
 Player* hero = new Player();
 
-int lbutton=0;
-int rbutton=0;
-//
+
+
+////////////////////texture loading////////////////
 GLuint badTexture;
 GLuint hboxTexture;
 GLuint heroTexture;
 GLuint backTexture;
 GLuint beamTexture;
-//
-#define MAXBUTTONS 4
-typedef struct t_button {
-	Rect r;
-	char text[32];
-	int over;
-	int down;
-	int click;
-	double color[3];
-	double dcolor[3];
-	unsigned int text_color;
-} Button;
-Button button[MAXBUTTONS];
-int nbuttons=0;
+GLuint startTexture;
+GLuint gridTexture;
+GLuint d1Tex;
+GLuint d2Tex;
+GLuint d3Tex;
+GLuint loseTex;
+GLuint titleTex;
+GLuint gridTex;
+GLuint s10Tex;
+GLuint s0Tex;
+GLuint s1Tex;
+GLuint s2Tex;
+GLuint s3Tex;
+GLuint s4Tex;
+GLuint s5Tex;
+GLuint s6Tex;
+GLuint s7Tex;
+GLuint s8Tex;
+GLuint s9Tex;
+GLuint lifeTex;
 
+
+//update speed of enemies based on score
 void levelUpdate()
 {
-  if(hero->score%15==0)
+  if(hero->score%30==0)
   {
-    LEVEL += .05;
-    cout << LEVEL << endl;
-    cout << hero->score<<endl;
-    if(LEVEL > .1999999)
-      movTick = .3;
+    LEVEL += .005;
   }
 }
 
-void drawEn(int enmy = 0)
-{ 
-  glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
-  glPushMatrix();
-  //baddy[enmy].xPos=1.5;baddy[enmy].yPos=0; //STOP 
-  glTranslatef(baddy[enmy].xPos,baddy[enmy].yPos,0);
-  glRotatef(90+180,0,0,1);
-  glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.0f);
-  glBindTexture(GL_TEXTURE_2D, badTexture);
-
-  double e=.75,f=9,d= 15;
-
-  glBegin (GL_QUADS);
-  {
-    glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-e, e, -f);
-    glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(e, e, -f);
-    glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(e, -e, -f);
-    glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-e, -e, -f);
-  }
-  
-  glEnd();
-  glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_ALPHA_TEST);
-  glPopMatrix();
-}
-
+//move enemies down based on time and level
 void moveEn()
 {
   double currTime = glfwGetTime();
@@ -109,40 +89,14 @@ void moveEn()
     if(baddy[i].yPos <= -2) 
     {
       baddy[i].reset();
+      hero->life -= 1;
     }
   }
  
 }
 
-void drawBeam()
-{
- 
-  glPushMatrix();
-  //draw beam over hero
-  glTranslatef(hero->getPos(),-4,0);
-  
-  glEnable(GL_ALPHA_TEST);
-  glAlphaFunc(GL_GREATER, 0.0f);
-  glBindTexture(GL_TEXTURE_2D,beamTexture);
-  
-  double f=9,h=10,w=.25;
-  
-  //drawn incorrectly from image, but I actually 
-  //like the way it looks better, so i'm keeping it
-  glBegin(GL_QUADS);
-  {
-    glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-w, h, -f);
-    glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(w, h, -f);
-    glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(w, 0, -f);
-    glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-w, 0, -f);
-  }
-  glEnd();
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glDisable(GL_ALPHA_TEST);
-  glPopMatrix();
-  
-}
 
+//hit detection
 void shoot(int i)
 {
   double left = hero->getPos() - MARG;
@@ -151,13 +105,15 @@ void shoot(int i)
   
   if(left < baddy[i].xPos && baddy[i].xPos < right && height < 5.4)
   {
-    baddy[i].reset();
+    baddy[i].state = 1;
+    baddy[i].deathPos = baddy[i].getyPos();
     hero->kill();
     levelUpdate();
     return;
   }
 }
  
+//this handles keys that are held down
 void keyHandler()
 {
       if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
@@ -188,6 +144,7 @@ void keyHandler()
       }
 	  }
 	  
+	  //following two are for debug purposes
 	  if(glfwGetKey('N') == GLFW_PRESS) //right movement
     {
       //if(baddy[0].xPos >= -4) 
@@ -224,6 +181,368 @@ void shutDown(int return_code)
   exit(return_code);
 }
 
+
+//draw life meter
+void drawLife()
+{ //draw Lives text
+  glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+  glPushMatrix();
+
+  glTranslatef(3.3,-4.9,0); 
+  glRotatef(90,0,0,1);
+  glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+
+  glBindTexture(GL_TEXTURE_2D, lifeTex);	
+  
+  double e=.15,f=9,d=1;;
+  glBegin(GL_QUADS);
+  {
+    glColor3f(1, 1, 1); //
+    //glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-e, e, -f);
+    //glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(e, e, -f);
+    //glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(e, -e, -f);
+    //glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-e, -e, -f);
+    glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-e, d, -f);
+    glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(e, d, -f);
+    glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(e, -d, -f);
+    glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-e, -d, -f);
+  }
+  glEnd();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_ALPHA_TEST);
+  glPopMatrix();
+  
+  
+  //////////////draw amount of life left///////////////
+  glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+  glPushMatrix();
+
+  glTranslatef(2,-4.9,0); 
+  glRotatef(90,0,0,1);
+  glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+
+  switch (hero->life)
+  {
+    case 10:
+      glBindTexture(GL_TEXTURE_2D, s10Tex);	
+      break;
+    case 9:
+      glBindTexture(GL_TEXTURE_2D, s9Tex);	
+      break;
+    case 8:
+      glBindTexture(GL_TEXTURE_2D, s8Tex);
+      break;
+    case 7:
+      glBindTexture(GL_TEXTURE_2D, s7Tex);
+      break;
+    case 6:
+      glBindTexture(GL_TEXTURE_2D, s6Tex);
+      break;
+    case 5:
+      glBindTexture(GL_TEXTURE_2D, s5Tex);
+      break;
+    case 4:
+      glBindTexture(GL_TEXTURE_2D, s4Tex);
+      break;
+    case 3:
+      glBindTexture(GL_TEXTURE_2D, s3Tex);
+      brea:;
+    case 2:
+      glBindTexture(GL_TEXTURE_2D, s2Tex);
+      break;
+    case 1:
+      glBindTexture(GL_TEXTURE_2D, s1Tex);
+      break;
+    default:
+      glBindTexture(GL_TEXTURE_2D, s0Tex);
+      break;
+   }  
+	
+  
+  double g=.15,h=.20;;
+  glBegin(GL_QUADS);
+  {
+    glColor3f(1, 1, 1); //
+    glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-g, h, -f);
+    glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(g, h, -f);
+    glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(g, -h, -f);
+    glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-g, -h, -f);
+  }
+  glEnd();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_ALPHA_TEST);
+  glPopMatrix();
+
+}
+
+
+
+
+void render()
+{
+  // clear the buffer
+  glViewport(0, 0, 512,600);
+  
+  glClear(GL_COLOR_BUFFER_BIT);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  
+  glOrtho(0, 0, 512,600,-1,1);
+    
+  if(MENU==0)
+  {
+    drawBeginning();
+    int temp=system("clear");
+  }
+  else if(MENU==1)
+  {
+    drawBackground();
+    drawLife();
+    drawPlayer();
+    updateEnemy(); //draw/move functions for enemies
+    if(beamFlag==1)
+    {
+      drawBeam();
+      usleep(5000); //just long enough to flash on screen
+      beamFlag=0;
+    }
+    if(hero->life <= 0)
+      MENU=2;
+      
+  }
+  else if(MENU==2)
+  {
+    drawGameOver();
+    if(sflag)
+    {
+      sflag=0;
+      int temp=system("clear");
+      cout << "You scored " << hero->score << endl;
+    }
+  } 
+  
+
+  glfwSwapBuffers();
+  
+}
+
+
+//draw grid on first menu screen
+void drawGrid()
+{
+  glPushMatrix();
+  glTranslatef(0,0,0);
+  glBindTexture(GL_TEXTURE_2D, gridTex);
+
+  double d = 5;
+  double h=2.5,w=2.99;
+
+  glBegin(GL_QUADS); 
+  {
+    glColor3f(.7,.7,.7);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(h, -w, -d);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(h, w, -d);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-h, w, -d);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-h,-w, -d);
+  }
+  glEnd();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glPopMatrix();
+
+}
+
+//title on first menu screen
+void drawTitle()
+{
+  glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+  glPushMatrix();
+  //move image down to where player actually is
+  glTranslatef(0,1,0); 
+  glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	//rotate on z axis
+  glRotatef(90, 0, 0, 1);
+  
+  glBindTexture(GL_TEXTURE_2D, titleTex);	
+  
+  double e=.5,f=5;;
+  glBegin(GL_QUADS);
+  {
+    glColor3f(1, 1, 1); //
+    glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-e, 1.5, -f);
+    glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(e, 1.5, -f);
+    glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(e, -1.5, -f);
+    glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-e, -1.5, -f);
+  }
+  glEnd();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_ALPHA_TEST);
+  glPopMatrix();
+}
+
+
+//draw start instructions on first menu
+void drawStart()
+{
+    glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+  glPushMatrix();
+
+  glTranslatef(0,-4,0); 
+  glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+
+  glRotatef(90, 0, 0, 1);
+  glBindTexture(GL_TEXTURE_2D, startTexture);	
+  
+  double e=.5,f=9;;
+  glBegin(GL_QUADS);
+  {
+    glColor3f(1, 1, 1); //
+    glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-e, 1.5, -f);
+    glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(e, 1.5, -f);
+    glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(e, -1.5, -f);
+    glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-e, -1.5, -f);
+  }
+  glEnd();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_ALPHA_TEST);
+  glPopMatrix();
+}
+
+//handler for intro screen
+void drawBeginning()
+{
+  drawGrid();
+  drawTitle();
+  drawStart();
+}
+
+//game over screen
+void drawDeath()
+{
+  glPushMatrix();
+  glTranslatef(0,0,0);
+  glBindTexture(GL_TEXTURE_2D, loseTex);
+
+  double d = 5;
+  double h=2.5,w=2.99;
+
+  glBegin(GL_QUADS); 
+  {
+    glColor3f(.7,.7,.7);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(h, -w, -d);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(h, w, -d);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-h, w, -d);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-h,-w, -d);
+  }
+  glEnd();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glPopMatrix();
+
+}
+
+//handler for game over screen for when i was going to add more
+//displays like score/highscores
+void drawGameOver()
+{
+  drawDeath();
+}
+
+//draw enemy, hanndles ALL drawn enemies objects include death animation
+void drawEn(int enmy = 0)
+{ 
+  if(baddy[enmy].state==0) //if it's alive
+  {
+    glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+    glPushMatrix();
+    //baddy[enmy].xPos=1.5;baddy[enmy].yPos=0; //STOP 
+    glTranslatef(baddy[enmy].xPos,baddy[enmy].yPos,0);
+    glRotatef(90+180,0,0,1);
+    glEnable(GL_ALPHA_TEST);
+  	glAlphaFunc(GL_GREATER, 0.0f);
+    glBindTexture(GL_TEXTURE_2D, badTexture);
+
+    double e=.75,f=9,d= 15;
+
+    glBegin (GL_QUADS);
+    {
+      glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-e, e, -f);
+      glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(e, e, -f);
+      glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(e, -e, -f);
+      glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-e, -e, -f);
+    }
+    
+    glEnd();
+    glBindTexture(GL_TEXTURE_2D, 0);
+  	glDisable(GL_ALPHA_TEST);
+    glPopMatrix();
+  }
+  else //if it's dead, draw death sequence
+  {
+    glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+    glPushMatrix();
+    glTranslatef(baddy[enmy].xPos,baddy[enmy].deathPos,0);
+    glRotatef(90+180,0,0,1);
+    glEnable(GL_ALPHA_TEST);
+  	glAlphaFunc(GL_GREATER, 0.0f);
+  	//death sequence
+  	if(baddy[enmy].state==1) { glBindTexture(GL_TEXTURE_2D, d1Tex); baddy[enmy].state++; }
+  	else if(baddy[enmy].state==2) { glBindTexture(GL_TEXTURE_2D, d2Tex); baddy[enmy].state++; }
+    else { glBindTexture(GL_TEXTURE_2D, d3Tex); baddy[enmy].state=0; baddy[enmy].reset(); }
+    
+    double e=.75,f=9,d= 15;
+
+    glBegin (GL_QUADS);
+    {
+      glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-e, e, -f);
+      glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(e, e, -f);
+      glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(e, -e, -f);
+      glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-e, -e, -f);
+    }
+    
+    glEnd();
+    glBindTexture(GL_TEXTURE_2D, 0);
+  	glDisable(GL_ALPHA_TEST);
+    glPopMatrix();
+  }
+      
+}
+
+
+//beam looks totally different than drawn image
+//but I think it looks cooler that way
+void drawBeam()
+{
+ 
+  glPushMatrix();
+  //draw beam over hero
+  glTranslatef(hero->getPos(),-4,0);
+  
+  glEnable(GL_ALPHA_TEST);
+  glAlphaFunc(GL_GREATER, 0.0f);
+  glBindTexture(GL_TEXTURE_2D,beamTexture);
+  
+  double f=9,h=10,w=.25;
+  
+  //drawn incorrectly from image, but I actually 
+  //like the way it looks better, so i'm keeping it
+  glBegin(GL_QUADS);
+  {
+    glTexCoord3f(0.0f, 0.0f,-f);glVertex3f(-w, h, -f);
+    glTexCoord3f(0.0f, 1.0f,-f);glVertex3f(w, h, -f);
+    glTexCoord3f(1.0f, 1.0f,-f);glVertex3f(w, 0, -f);
+    glTexCoord3f(1.0f, 0.0f,-f);glVertex3f(-w, 0, -f);
+  }
+  glEnd();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_ALPHA_TEST);
+  glPopMatrix();
+  
+}
+
+//handls drawing hero object
 void drawPlayer() {
   
   //spinning it just for fun
@@ -255,6 +574,7 @@ void drawPlayer() {
 
 }
 
+//draws the, uh, background
 void drawBackground()
 {
   glPushMatrix();
@@ -279,56 +599,8 @@ void drawBackground()
 }
 
 
-void screenInfo()
-{
-  int i=1;
-  Rect r;
-  r.left=10;
-  r.bot=10;
-  r.center=0;
 
-}
-
-
-
-void render()
-{
-  // clear the buffer
-  glViewport(0, 0, 512,600);
-  
-  glClear(GL_COLOR_BUFFER_BIT);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  
-  glOrtho(0, 0, 512,600,-1,1);
-  
-  screenInfo();
-  
-  drawBackground();
- 
-  drawPlayer();
-  updateEnemy();
-  if(beamFlag==1)
-  {
-    drawBeam();
-    usleep(5000);
-    beamFlag=0;
-  }
-  
-  drawPlayer();
-
-  float totrain = 12.3455;
-
-	Rect r;
-	r.left   = 2;
-	r.bot    = 3;
-	r.center = 0;
- // ggprint12(&r, 16, 0x00aaaa00, "total drops: %f",totrain);
-
-  glfwSwapBuffers();
-  
-}
-
+//handles single key presses, only does one action per press
 void GLFWCALL keyCallBack(int key, int action) 
 {
   
@@ -342,7 +614,14 @@ void GLFWCALL keyCallBack(int key, int action)
       for(int i=0;i<MAXENEMY;i++)
         shoot(i); 
       beamFlag=1;  
-    } 
+    }
+    if(key == GLFW_KEY_ENTER && action == GLFW_PRESS) 
+    {
+      if(MENU==0)
+        MENU=1;
+      else if(MENU==1 && hero->life <= 0)
+        MENU=2;  
+    }  
         
   }
   if(key == 'P' && action == GLFW_PRESS)
@@ -355,11 +634,13 @@ void GLFWCALL keyCallBack(int key, int action)
   }
   if(key == 'U' && action == GLFW_PRESS)
   {
+    hero->life=100;
   }
   
 }
 
 
+//intialize eveything
 void init_opengl(void)
 {
 	
@@ -368,17 +649,39 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	//
 	glEnable(GL_TEXTURE_2D);
-	backTexture = tex_readgl_bmp("backdrop.bmp",1);
-	badTexture = tex_readgl_bmp("baddy.bmp",1);
-	heroTexture = tex_readgl_bmp("hero.bmp",1);
-	hboxTexture = tex_readgl_bmp("bBox.bmp",1);
-	beamTexture = tex_readgl_bmp("beam.bmp",1);
+	backTexture = tex_readgl_bmp((char *)"backdrop.bmp",1);
+	badTexture = tex_readgl_bmp((char *)"baddy.bmp",1);
+	heroTexture = tex_readgl_bmp((char *)"hero.bmp",1);
+	hboxTexture = tex_readgl_bmp((char *)"bBox.bmp",1);
+	beamTexture = tex_readgl_bmp((char *)"beam.bmp",1);
+	startTexture = tex_readgl_bmp((char *)"start.bmp",1);
+	gridTexture = tex_readgl_bmp((char *)"background.bmp",1);
+	d1Tex = tex_readgl_bmp((char *)"d1.bmp",1);
+	d2Tex = tex_readgl_bmp((char *)"d2.bmp",1);
+	d3Tex = tex_readgl_bmp((char *)"d3.bmp",1);
+	loseTex = tex_readgl_bmp((char *)"gOver.bmp",1);
+	titleTex = tex_readgl_bmp((char *)"title.bmp",1);
+	gridTex = tex_readgl_bmp((char *)"GRID.bmp",1);
+	s1Tex = tex_readgl_bmp((char *)"s1.bmp",1);
+	s2Tex = tex_readgl_bmp((char *)"s2.bmp",1);
+	s3Tex = tex_readgl_bmp((char *)"s3.bmp",1);
+	s4Tex = tex_readgl_bmp((char *)"s4.bmp",1);
+	s5Tex = tex_readgl_bmp((char *)"s5.bmp",1);
+	s6Tex = tex_readgl_bmp((char *)"s6.bmp",1);
+	s7Tex = tex_readgl_bmp((char *)"s7.bmp",1);
+	s8Tex = tex_readgl_bmp((char *)"s8.bmp",1);
+	s9Tex = tex_readgl_bmp((char *)"s9.bmp",1);
+	s0Tex = tex_readgl_bmp((char *)"s0.bmp",1);	
+	s10Tex = tex_readgl_bmp((char *)"s10.bmp",1);
+	lifeTex = tex_readgl_bmp((char *)"life.bmp",1);
+
+		
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
-	//printf("tex: %i %i\n",badTexture,backTexture);
+
 }
 
-
+//init windows
 void init(int window_height, int window_width)
 {
     init_opengl();
@@ -430,127 +733,4 @@ void init(int window_height, int window_width)
   //InitEnemies();
 }
 
-
-void check_mouse(void)
-{
-	static int sx=0,sy=0;	
-	int x,y;
-	int i;
-	//int cent[2];
-	lbutton=0;
-	rbutton=0;
-	if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-		//left mouse button is pressed.
-		lbutton=1;
-	}
-	if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-		//right mouse button is pressed.
-		rbutton=1;
-	}
-	glfwGetMousePos(&x, &y);
-	//reverse the y position
-	y = yres - y;
-	if (x == sx && y == sy) return;
-	sx=x;
-	sy=y;	
-	//
-	//is the mouse over any buttons?
-	//
-	for (i=0; i<nbuttons; i++) {
-		button[i].over=0;
-		button[i].down=0;
-	}
-	for (i=0; i<nbuttons; i++) {
-		if (x >= button[i].r.left &&
-			x <= button[i].r.right &&
-			y >= button[i].r.bot &&
-			y <= button[i].r.top) {
-			button[i].over=1;
-			break;
-		}
-	}
-}
-
-void init_buttons(void)
-{
-  //initialize buttons...
-	nbuttons=0;
-	//size and position
-	button[nbuttons].r.width = 140;
-	button[nbuttons].r.height = 60;
-	button[nbuttons].r.left = 20;
-	button[nbuttons].r.bot = 480;
-	button[nbuttons].r.right = button[nbuttons].r.left + button[nbuttons].r.width;
-	button[nbuttons].r.top = button[nbuttons].r.bot + button[nbuttons].r.height;
-	button[nbuttons].r.centerx = (button[nbuttons].r.left + button[nbuttons].r.right) / 2;
-	button[nbuttons].r.centery = (button[nbuttons].r.bot + button[nbuttons].r.top) / 2;
-	strcpy(button[nbuttons].text, "Creep");
-	button[nbuttons].down = 0;
-	button[nbuttons].click = 0;
-	button[nbuttons].color[0] = 0.4f;
-	button[nbuttons].color[1] = 0.4f;
-	button[nbuttons].color[2] = 0.7f;
-	button[nbuttons].dcolor[0] = button[nbuttons].color[0] * 0.5f;
-	button[nbuttons].dcolor[1] = button[nbuttons].color[1] * 0.5f;
-	button[nbuttons].dcolor[2] = button[nbuttons].color[2] * 0.5f;
-	button[nbuttons].text_color = 0x00ffffff;
-	nbuttons++;
-	button[nbuttons].r.width = 140;
-	button[nbuttons].r.height = 60;
-	button[nbuttons].r.left = 20;
-	button[nbuttons].r.bot = 400;
-	button[nbuttons].r.right = button[nbuttons].r.left + button[nbuttons].r.width;
-	button[nbuttons].r.top = button[nbuttons].r.bot + button[nbuttons].r.height;
-	button[nbuttons].r.centerx = (button[nbuttons].r.left + button[nbuttons].r.right) / 2;
-	button[nbuttons].r.centery = (button[nbuttons].r.bot + button[nbuttons].r.top) / 2;
-	strcpy(button[nbuttons].text, "8 Creeps");
-	button[nbuttons].down = 0;
-	button[nbuttons].click = 0;
-	button[nbuttons].color[0] = 0.4f;
-	button[nbuttons].color[1] = 0.4f;
-	button[nbuttons].color[2] = 0.7f;
-	button[nbuttons].dcolor[0] = button[nbuttons].color[0] * 0.5f;
-	button[nbuttons].dcolor[1] = button[nbuttons].color[1] * 0.5f;
-	button[nbuttons].dcolor[2] = button[nbuttons].color[2] * 0.5f;
-	button[nbuttons].text_color = 0x00ffffff;
-	nbuttons++;
-	button[nbuttons].r.width = 140;
-	button[nbuttons].r.height = 60;
-	button[nbuttons].r.left = 20;
-	button[nbuttons].r.bot = 320;
-	button[nbuttons].r.right = button[nbuttons].r.left + button[nbuttons].r.width;
-	button[nbuttons].r.top = button[nbuttons].r.bot + button[nbuttons].r.height;
-	button[nbuttons].r.centerx = (button[nbuttons].r.left + button[nbuttons].r.right) / 2;
-	button[nbuttons].r.centery = (button[nbuttons].r.bot + button[nbuttons].r.top) / 2;
-	strcpy(button[nbuttons].text, "Reset");
-	button[nbuttons].down = 0;
-	button[nbuttons].click = 0;
-	button[nbuttons].color[0] = 0.4f;
-	button[nbuttons].color[1] = 0.4f;
-	button[nbuttons].color[2] = 0.7f;
-	button[nbuttons].dcolor[0] = button[nbuttons].color[0] * 0.5f;
-	button[nbuttons].dcolor[1] = button[nbuttons].color[1] * 0.5f;
-	button[nbuttons].dcolor[2] = button[nbuttons].color[2] * 0.5f;
-	button[nbuttons].text_color = 0x00ffffff;
-	nbuttons++;
-	button[nbuttons].r.width = 140;
-	button[nbuttons].r.height = 60;
-	button[nbuttons].r.left = 20;
-	button[nbuttons].r.bot = 160;
-	button[nbuttons].r.right = button[nbuttons].r.left + button[nbuttons].r.width;
-	button[nbuttons].r.top = button[nbuttons].r.bot + button[nbuttons].r.height;
-	button[nbuttons].r.centerx = (button[nbuttons].r.left + button[nbuttons].r.right) / 2;
-	button[nbuttons].r.centery = (button[nbuttons].r.bot + button[nbuttons].r.top) / 2;
-	strcpy(button[nbuttons].text, "Quit");
-	button[nbuttons].down = 0;
-	button[nbuttons].click = 0;
-	button[nbuttons].color[0] = 0.3f;
-	button[nbuttons].color[1] = 0.3f;
-	button[nbuttons].color[2] = 0.6f;
-	button[nbuttons].dcolor[0] = button[nbuttons].color[0] * 0.5f;
-	button[nbuttons].dcolor[1] = button[nbuttons].color[1] * 0.5f;
-	button[nbuttons].dcolor[2] = button[nbuttons].color[2] * 0.5f;
-	button[nbuttons].text_color = 0x00ffffff;
-	nbuttons++;
-}
 

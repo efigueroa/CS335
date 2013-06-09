@@ -3,6 +3,7 @@
  * Team: Where'd Everyone Go?
 */
 
+#include <iostream>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,18 +11,22 @@
 #include <time.h>
 #include <cstdlib>
 #include "functions.h"
-#include "enemy.cpp"
-#include "player.cpp"
+#include "defs.h"
+#include "fonts.h"
+//#include "enemy.cpp"
+//#include "player.cpp"
 
 
 
+using namespace std;
 
 double moveX = 0;
 double movTick = .1;
 const int window_width = 512,
           window_height = 600;
-const int MAXENEMY = 5;
+
 double oldTime;
+
 
 int main()
 {
@@ -30,9 +35,7 @@ int main()
  
   init(window_height, window_width);
   init_opengl();
- 
-  init_buttons();
-  
+
   while(1)
   {
     keyHandler();

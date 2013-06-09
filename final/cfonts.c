@@ -1771,7 +1771,7 @@ int tex_read_ggfont_bmp(char *fileName, Texmap *tm)
 		//
 		unsigned char *ptr = tm->c;
 		for(j=h-1; j>=0; j--) {
-			read(fh, rbuf, bytesPerLine);
+			int br = read(fh, rbuf, bytesPerLine);
 			k = 0;
 			for (i=0; i<w; i++) {
 				*(ptr+2) = rbuf[k++];
@@ -1831,7 +1831,7 @@ int read_tex(char *fileName, int texn)
 			printf("\nunsigned char %s[]={\n", fileName);
 		#endif //SHOW_COMPRESSED_PRINTOUT
 		for(j=h-1; j>=0; j--) {
-			read(fh, rbuf, bytesPerLine);
+			int t=read(fh, rbuf, bytesPerLine);
 			k = 0;
 			for (i=0; i<w; i++) {
 				c3 = rbuf[k++];

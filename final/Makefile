@@ -2,11 +2,11 @@ CC     = g++
 CFLAGS = -I../include -pthread -O1
 
 LIB    = ../lib/x11/libglfw.a 
-LFLAGS = $(LIB) -lrt -lX11 -lGLU -lGL -pthread -lm -lXrandr
+LFLAGS = $(LIB) -lrt -lX11 -lGLU -lGL -pthread -lm -lXrandr 
 
 all: game 
 
-game: main.o functions.o cfonts.o fonttex.o
+game: main.o functions.o cfonts.o fonttex.o 
 	g++ $(CFLAGS) main.o functions.o cfonts.o fonttex.o $(LFLAGS) -o game 
 
 main.o: main.cpp functions.cpp 
